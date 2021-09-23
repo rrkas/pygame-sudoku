@@ -1,6 +1,8 @@
 import pygame
 from pygame.locals import *
 
+from components.models import Data
+
 pygame.font.init()
 
 
@@ -10,7 +12,7 @@ class Constants:
         self.app_name = "Sudoku"
 
         # dimensions
-        self.levels = [3, 4, 9, 16, 25]
+        self.levels = [3, 4, 9]
 
         self.s_side = 500
         self.padding = 10
@@ -32,24 +34,31 @@ class Constants:
         self.top_left_x = self.padding
         self.top_left_y = self.padding + self.app_name_fontsize + self.level_fontsize
 
+        self.border_grid_width = 2
+
         # colors
         self.color_bg = (128, 128, 128, 128)
         self.color_grid = (0, 0, 0)
         self.color_cell = (255, 255, 255)
-        self.color_fixed = (0, 0, 0)
-        self.color_picked_accepted = (0, 255, 0)
-        self.color_picked_error = (255, 0, 0)
+        self.color_fixed_bg = (255, 255, 0)
+
+        self.color_fixed_num = (0, 0, 0)
+        self.color_chosen_num = (0, 0, 255)
 
         self.color_level_default = (255, 255, 255)
         self.color_level_selected = (255, 255, 0)
-        self.color_label = (0, 0, 0)
+        self.color_label = (255, 255, 255)
 
         # fonts
         self.font_global = "comicsans"
+        self.monospace = "monospace"
 
         # keys
         self.continue_keys = [K_KP_ENTER, K_RETURN]
         self.exit_pause_keys = [K_ESCAPE]
+
+        # data
+        self.data = Data()
 
 
 constants = Constants()

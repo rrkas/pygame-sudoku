@@ -1,7 +1,7 @@
 from pygame.locals import *
 
 from components.methods import *
-from components.models import Sudoku
+from components.models import Sudoku, CartesianPoint
 
 pygame.init()
 
@@ -11,73 +11,39 @@ def main(surface: pygame.Surface, level: int):
     run = True
     clock = pygame.time.Clock()
     game_time = 0
+    point = CartesianPoint((0, 0))
     while run:
+        clock.tick()
         game_time += clock.get_rawtime()
-        if game_time % 1000 == 0:
-            game.time_taken_sec += 1
-        surface.fill(constants.color_bg)
-        draw_text_middle(
-            surface,
-            constants.app_name,
-            constants.app_name_fontsize,
-            constants.color_label,
-            margin_top=constants.padding,
-        )
-        draw_text_middle(
-            surface,
-            f"{game.time_taken_sec} secs",
-            constants.level_fontsize,
-            constants.color_label,
-            margin_top=constants.play_area[1] - constants.level_fontsize,
-        )
-        draw_grid(surface, game)
-
-        pygame.display.update()
-
+        game.time_taken_sec = game_time // 1000
+        draw_game_window(surface, game, point)
         for event in pygame.event.get():
             if event.type == QUIT:
                 run = False
             elif event.type == KEYDOWN:
                 if event.key == K_DOWN:
-                    level = (level + 1) % len(constants.levels)
+                    point.y = (point.y + 1) % game.size
                 elif event.key == K_UP:
-                    level = (level - 1) % len(constants.levels)
+                    point.y = (point.y - 1) % game.size
+                elif event.key == K_LEFT:
+                    point.x = (point.x - 1) % game.size
+                elif event.key == K_RIGHT:
+                    point.x = (point.x + 1) % game.size
+                elif K_1 <= event.key <= (K_1 + game.size - 1):
+                    # upper numbers
+                    game.update(point, event.key - K_1 + 1)
+                elif K_KP1 <= event.key <= (K_KP1 + game.size - 1):
+                    # numpad keys
+                    game.update(point, event.key - K_KP1 + 1)
                 elif event.key in constants.exit_pause_keys:
                     run = False
-
-        clock.tick()
 
 
 def main_menu(surface: pygame.Surface):
     run = True
     level = 0
     while run:
-        surface.fill(constants.color_bg)
-        draw_text_middle(
-            surface,
-            constants.app_name,
-            constants.app_name_fontsize,
-            constants.color_label,
-            constants.padding,
-        )
-        draw_text_middle(
-            surface,
-            "Choose Level",
-            constants.level_fontsize,
-            constants.color_label,
-            2 * constants.padding + constants.app_name_fontsize,
-        )
-        level_menu(surface, level)
-        draw_text_middle(
-            surface,
-            "Press enter to play!",
-            constants.level_fontsize,
-            constants.color_label,
-            4 * constants.padding
-            + 2 * constants.app_name_fontsize
-            + len(constants.levels) * constants.app_name_fontsize,
-        )
-        pygame.display.update()
+        draw_menu_window(surface, level)
 
         for event in pygame.event.get():
             if event.type == QUIT:
