@@ -1,5 +1,6 @@
 import json
 import random
+from math import ceil
 from typing import List, Union
 
 import numpy as np
@@ -91,6 +92,8 @@ class Sudoku:
 
     def get_invalid_chosen(self):
         self.chosen_err = []
+
+        # general validation: row, col
         for i in range(self.size):
             r = self.grid[i, :].tolist()
             c = self.grid[:, i].tolist()
@@ -103,6 +106,30 @@ class Sudoku:
                 if e > 0 and c.count(e) > 1:
                     if (j, i) not in self.fixed and (j, i) not in self.chosen_err:
                         self.chosen_err.append(CartesianPoint((j, i)))
+
+        if self.size <= 3:
+            return
+
+        # size > 3, sub grid validation
+        col_div = ceil(self.size ** 0.5)
+        while self.size % col_div != 0:
+            col_div -= 1
+        row_div = self.size // col_div
+
+        for i in range(0, self.size, row_div):
+            for j in range(0, self.size, col_div):
+                sub = self.grid[i : i + row_div, j : j + col_div].flatten().tolist()
+                for si in range(row_div):
+                    for sj in range(col_div):
+                        ti, tj = i + si, j + sj
+                        e = self.grid[ti][tj]
+                        if (
+                            e != 0
+                            and sub.count(e) > 1
+                            and (ti, tj) not in self.fixed
+                            and (ti, tj) not in self.chosen_err
+                        ):
+                            self.chosen_err.append(CartesianPoint((ti, tj)))
 
 
 class Score:
