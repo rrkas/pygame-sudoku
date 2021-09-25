@@ -13,7 +13,7 @@ def level_menu(surface: pygame.Surface, level: int):
     for i, l in enumerate(constants.levels):
         draw_text_middle(
             surface,
-            str(l),
+            f"{l}x{l}",
             constants.app_name_fontsize,
             constants.color_level_selected
             if i == level
@@ -32,25 +32,33 @@ def draw_grid(surface: pygame.Surface, game: Sudoku, point: CartesianPoint):
         for j in range(game.size):
             rect_x = (
                 constants.top_left_x
-                + i * game.cell_size()
+                + j * game.cell_size()
                 + constants.border_grid_width
             )
             rect_y = (
                 constants.top_left_y
-                + j * game.cell_size()
+                + i * game.cell_size()
                 + constants.border_grid_width
             )
-            rect_size = game.cell_size() - constants.border_grid_width
+            rect_size = game.cell_size() - constants.border_grid_width / 2
             if (i, j) in game.fixed:
                 pygame.draw.rect(
                     surface,
                     constants.color_fixed_bg,
                     pygame.Rect(rect_x, rect_y, rect_size, rect_size),
                 )
+            elif (i, j) in game.chosen_err:
+                pygame.draw.rect(
+                    surface,
+                    constants.color_chosen_num_err,
+                    pygame.Rect(rect_x, rect_y, rect_size, rect_size),
+                )
             num_surface = num_font.render(
                 str(game.grid[i][j]) if game.grid[i][j] != 0 else "",
                 True,
                 constants.color_fixed_num
+                if (i, j) in game.fixed
+                else constants.color_cell_bg
                 if (i, j) in game.fixed
                 else constants.color_chosen_num,
             )
@@ -107,10 +115,32 @@ def draw_grid(surface: pygame.Surface, game: Sudoku, point: CartesianPoint):
     )
 
 
-def draw_game_window(surface: pygame.Surface, game: Sudoku, point: CartesianPoint):
+def draw_paused_message(surface: pygame.Surface):
+    height_overlap = 100
+    rect = pygame.Rect(
+        constants.top_left_x + 2 * constants.padding,
+        constants.top_left_y + (constants.s_side - height_overlap) / 2,
+        constants.s_side - 4 * constants.padding,
+        height_overlap,
+    )
+    pygame.draw.rect(surface, constants.color_overlap_bg, rect)
+
+    font = pygame.font.SysFont(
+        constants.monospace,
+        constants.level_fontsize,
+        bold=True,
+    )
+    paused_surface = font.render("Paused", 1, constants.color_grid)
+    paused_rect = paused_surface.get_rect(center=rect.center)
+    surface.blit(paused_surface, paused_rect)
+
+
+def draw_game_window(
+    surface: pygame.Surface, game: Sudoku, point: CartesianPoint, running: bool
+):
     surface.fill(constants.color_bg)
     surface.fill(
-        constants.color_level_default,
+        constants.color_cell_bg,
         rect=pygame.Rect(
             constants.top_left_x,
             constants.top_left_y,
@@ -146,6 +176,8 @@ def draw_game_window(surface: pygame.Surface, game: Sudoku, point: CartesianPoin
         monospace=True,
     )
     draw_grid(surface, game, point)
+    if not running:
+        draw_paused_message(surface)
     pygame.display.update()
 
 

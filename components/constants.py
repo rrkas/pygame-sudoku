@@ -12,7 +12,7 @@ class Constants:
         self.app_name = "Sudoku"
 
         # dimensions
-        self.levels = [3, 4, 9]
+        self.levels = [3, 4, 6, 9]
 
         self.s_side = 500
         self.padding = 10
@@ -37,13 +37,19 @@ class Constants:
         self.border_grid_width = 2
 
         # colors
-        self.color_bg = (128, 128, 128, 128)
+
+        # backgrounds
+        self.color_bg = (128, 128, 128)
+        self.color_overlap_bg = (200, 200, 200)
+        self.color_fixed_bg = (255, 255, 0)
+        self.color_cell_bg = (255, 255, 255)
+
         self.color_grid = (0, 0, 0)
         self.color_cell = (255, 255, 255)
-        self.color_fixed_bg = (255, 255, 0)
 
         self.color_fixed_num = (0, 0, 0)
         self.color_chosen_num = (0, 0, 255)
+        self.color_chosen_num_err = (255, 0, 0, 200)
 
         self.color_level_default = (255, 255, 255)
         self.color_level_selected = (255, 255, 0)

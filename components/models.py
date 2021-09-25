@@ -1,6 +1,6 @@
 import json
 import random
-from typing import List
+from typing import List, Union
 
 import numpy as np
 
@@ -58,15 +58,13 @@ class Sudoku:
         self.fixed: List[CartesianPoint] = []
         for i, j in np.argwhere(self.grid != 0):
             self.fixed.append(CartesianPoint((i, j)))
-        print(self.fixed)
-        self.chosen: List[CartesianPoint] = []
+        self.chosen_err: List[CartesianPoint] = []
         self.moves: int = 0
         self.time_taken_sec: int = 0
         if json_obj:
             self.size = json_obj.get("size")
             self.grid = np.ndarray(json_obj.get("grid"))
             self.fixed = [CartesianPoint(xy=f) for f in json_obj.get("fixed")]
-            self.chosen = [CartesianPoint(xy=c) for c in json_obj.get("chosen")]
             self.moves = json_obj.get("moves")
             self.time_taken_sec = json_obj.get("time_taken_sec")
 
@@ -75,7 +73,6 @@ class Sudoku:
             "size": self.size,
             "grid": self.grid.tolist(),
             "fixed": [f.to_tuple() for f in self.fixed],
-            "chosen": [c.to_tuple() for c in self.chosen],
             "moves": self.moves,
             "time_taken_sec": self.time_taken_sec,
         }
@@ -83,12 +80,29 @@ class Sudoku:
     def cell_size(self):
         return constants.s_side / self.size
 
-    def valid_cell(self, point):
+    def valid_cell(self, point: Union[CartesianPoint, tuple]):
         return point not in self.fixed
 
-    def update(self, point, value):
-        if self.valid_cell(point):
-            self.grid[point.x][point.y] = value
+    def update(self, point: CartesianPoint, value: int):
+        # x,y = j,i
+        if self.valid_cell((point.y, point.x)):
+            self.grid[point.y][point.x] = value
+        self.get_invalid_chosen()
+
+    def get_invalid_chosen(self):
+        self.chosen_err = []
+        for i in range(self.size):
+            r = self.grid[i, :].tolist()
+            c = self.grid[:, i].tolist()
+            for j in range(self.size):
+                e = r[j]
+                if e > 0 and r.count(e) > 1:
+                    if (i, j) not in self.fixed and (i, j) not in self.chosen_err:
+                        self.chosen_err.append(CartesianPoint((i, j)))
+                e = c[j]
+                if e > 0 and c.count(e) > 1:
+                    if (j, i) not in self.fixed and (j, i) not in self.chosen_err:
+                        self.chosen_err.append(CartesianPoint((j, i)))
 
 
 class Score:
@@ -105,3 +119,9 @@ class Score:
             "match": json.dumps(self.match.to_json(), indent=2),
             "wins": self.wins,
         }
+
+
+class GameState:
+    running = 1
+    paused = 2
+    over = 3
