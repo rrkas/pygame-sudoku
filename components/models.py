@@ -7,12 +7,12 @@ import numpy as np
 
 
 class CartesianPoint:
-    def __init__(self, xy: tuple = (0, 0)):
+    def __init__(self, xy: Union[tuple, list, set] = (0, 0)):
         self.x = xy[0]
         self.y = xy[1]
 
     def to_tuple(self):
-        return self.x, self.y
+        return int(self.x), int(self.y)
 
     def __repr__(self):
         return "repr:" + str((self.x, self.y))
@@ -64,12 +64,13 @@ class Sudoku:
         self.time_taken_sec: int = 0
         if json_obj:
             self.size = json_obj.get("size")
-            self.grid = np.ndarray(json_obj.get("grid"))
-            self.fixed = [CartesianPoint(xy=f) for f in json_obj.get("fixed")]
+            self.grid = np.array(json_obj.get("grid"))
+            if json_obj.get("fixed"):
+                self.fixed = [CartesianPoint(xy=f) for f in json_obj.get("fixed")]
             self.moves = json_obj.get("moves")
             self.time_taken_sec = json_obj.get("time_taken_sec")
 
-    def to_json(self):
+    def to_dict(self):
         return {
             "size": self.size,
             "grid": self.grid.tolist(),
@@ -131,21 +132,34 @@ class Sudoku:
                         ):
                             self.chosen_err.append(CartesianPoint((ti, tj)))
 
+    def is_win(self):
+        s = set(self.grid.flatten().tolist())
+        if 0 in s:
+            return False
+        if len(self.get_invalid_chosen()) > 0:
+            return False
+        return True
+
 
 class Score:
-    def __init__(self, json_obj: dict = None):
-        self.wins = 0
-        self.surrenders = 0
-        self.match = None
+    def __init__(self, json_obj: dict = None, level: int = 0):
+        self.wins: int = 0
+        self.surrenders: int = 0
+        self.game: Sudoku = Sudoku(size=constants.levels[level])
         if json_obj:
             self.wins = json_obj.get("wins")
-            self.match = json_obj.get("match")
+            self.surrenders = json_obj.get("surrenders")
+            self.game = Sudoku(json_obj=json_obj.get("game"))
 
     def to_json(self):
-        return {
-            "match": json.dumps(self.match.to_json(), indent=2),
-            "wins": self.wins,
-        }
+        return json.dumps(
+            {
+                "game": self.game.to_dict(),
+                "wins": self.wins,
+                "surrenders": self.surrenders,
+            },
+            indent=2,
+        )
 
 
 class GameState:

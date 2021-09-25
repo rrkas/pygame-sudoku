@@ -1,15 +1,19 @@
 from pygame.locals import *
 
 from components.methods import *
-from components.models import Sudoku, CartesianPoint
+from components.models import CartesianPoint
 
 pygame.init()
 
 
-def main(surface: pygame.Surface, level: int):
-    game = Sudoku(size=constants.levels[level])
+def main(surface: pygame.Surface, level: int = 0):
+    game = get_score(3).game
     run = GameState.running
     clock = pygame.time.Clock()
+    if game.time_taken_sec > 0:
+        init_time = game.time_taken_sec
+    else:
+        init_time = 0
     game_time = 0
     pause_time = 0
     point = CartesianPoint((0, 0))
@@ -18,7 +22,7 @@ def main(surface: pygame.Surface, level: int):
         if run != GameState.running:
             pause_time += clock.get_rawtime()
         game_time += clock.get_rawtime()
-        game.time_taken_sec = (game_time - pause_time) // 1000
+        game.time_taken_sec = ((game_time - pause_time) // 1000) + init_time
         draw_game_window(surface, game, point, run == GameState.running)
 
         for event in pygame.event.get():
@@ -47,6 +51,7 @@ def main(surface: pygame.Surface, level: int):
                         run = GameState.paused
                 else:
                     if event.key in constants.exit_pause_keys:
+                        set_score(game)
                         run = GameState.over
                     elif event.key in constants.continue_keys:
                         run = GameState.running
@@ -55,6 +60,10 @@ def main(surface: pygame.Surface, level: int):
 def main_menu(surface: pygame.Surface):
     run = True
     level = 0
+    score = get_score()
+    if score.game is not None:
+        main(surface)
+
     while run:
         draw_menu_window(surface, level)
 

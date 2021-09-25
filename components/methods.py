@@ -240,22 +240,32 @@ def draw_text_middle(
         )
 
 
-def get_score() -> Score:
+def get_score(level: int = 0) -> Score:
+    score = None
     try:
-        with open("score.txt", "r") as f:
-            score = f.readline()
+        with open("score.json", "r") as f:
+            score = f.read()
             if len(score) > 0:
-                return Score(json_obj=json.loads(score))
+                score = Score(json_obj=json.loads(score))
             else:
-                return Score()
+                score = Score(level=level)
     except BaseException as e:
         print(e)
-        return Score()
+        score = Score(level=level)
+    score.game.get_invalid_chosen()
+    return score
 
 
-def set_score(score: Score):
-    try:
-        with open("score.txt", "w") as f:
-            f.write(json.dumps(score.to_json(), indent=2))
-    except BaseException as e:
-        print(e)
+def set_score(game: Sudoku, surrender: bool = False):
+    score = get_score()
+    if surrender:
+        score.surrenders += 1
+        score.game = None
+    elif game.is_win():
+        score.wins += 1
+        score.game = None
+    else:
+        score.game = game
+
+    with open("score.json", "w") as f:
+        f.write(score.to_json())
